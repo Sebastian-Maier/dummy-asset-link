@@ -1,0 +1,1 @@
+module dummy-asset-link
