@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Machine Builder AG
+#
+# SPDX-License-Identifier: MIT
+
+name: Prepare Environment
+description: Setup Go and install dependencies
+
+inputs:
+  go-version:
+    description: 'Desired Go version'
+    required: false
+    default: 'stable'
+
+# outputs:
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
+    # - name: Install Dependencies
+    #   shell: bash
+    #   run: |
+    #     export GOPATH=$HOME/go
+    #     export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+    #     sudo apt-get update
+    #     sudo apt-get install -y protobuf-compiler
+    #     go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.1
+    #     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+    #     go install github.com/atombender/go-jsonschema@v0.16.0
+    - name: Set Environment Variables and Download al-ctl
+      shell: bash
+      run: |
+          # change the version as needed (potentially requires adjustments to the al-ctl calls in the tests script)
+          export ALCTLVERSION=v3.4.3
+          export OS_NAME=${{ runner.os }}
+          if [ "${{ runner.arch }}" == "X64" ]; then
+            export ARCH_NAME=x86_64
+          elif [ "${{ runner.arch }}" == "ARM64" ]; then
+            export ARCH_NAME=arm64
+          else
+            export ARCH_NAME=${{ runner.arch }}
+          fi
+          echo "Downloading al-ctl for OS: $OS_NAME, ARCH: $ARCH_NAME, VERSION: $ALCTLVERSION"
+          curl -L -o al-ctl_${OS_NAME}_${ARCH_NAME}.tar.gz https://github.com/industrial-asset-hub/asset-link-sdk/releases/download/${ALCTLVERSION}/al-ctl_${OS_NAME}_${ARCH_NAME}.tar.gz
+          tar -xf al-ctl_${OS_NAME}_${ARCH_NAME}.tar.gz
+          chmod +x al-ctl
